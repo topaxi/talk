@@ -29,6 +29,7 @@ class LayoutContainer extends React.Component {
       loadingUser,
       loginError,
       loginMaxExceeded,
+      twoFactorRequired,
       passwordRequestSuccess
     } = this.props.auth;
 
@@ -47,6 +48,7 @@ class LayoutContainer extends React.Component {
       return (
         <AdminLogin
           loginMaxExceeded={loginMaxExceeded}
+          twoFactorRequired={twoFactorRequired}
           handleLogin={this.props.handleLogin}
           requestPasswordReset={this.props.requestPasswordReset}
           passwordRequestSuccess={passwordRequestSuccess}
@@ -106,5 +108,5 @@ const mapDispatchToProps = (dispatch) =>
     toggleShortcutModal,
     logout
   }, dispatch);
-  
+
 export default connect(mapStateToProps, mapDispatchToProps)(LayoutContainer);

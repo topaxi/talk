@@ -5,6 +5,7 @@ const initialState = {
   user: null,
   loginError: null,
   loginMaxExceeded: false,
+  twoFactorRequired: false,
   passwordRequestSuccess: null
 };
 
@@ -56,6 +57,12 @@ export default function auth (state = initialState, action) {
     return {
       ...state,
       loginMaxExceeded: true,
+      loginError: action.message,
+    };
+  case actions.LOGIN_TWOFACTOR_REQUIRED:
+    return {
+      ...state,
+      twoFactorRequired: true,
       loginError: action.message,
     };
   default :

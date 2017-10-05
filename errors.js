@@ -176,6 +176,13 @@ const ErrLoginAttemptMaximumExceeded = new APIError('You have made too many inco
   status: 429
 });
 
+// ErrLoginTFCodeWrong is returned when the user account requires two factor auth
+// yet the code provided was incorrect or not provided.
+const ErrLoginTFCodeWrong = new APIError('Your two factor code was incorrect', {
+  translation_key: 'TWO_FACTOR_WRONG',
+  status: 403
+});
+
 // ErrEditWindowHasEnded is returned when the edit window has expired.
 const ErrEditWindowHasEnded = new APIError('Edit window is over', {
   translation_key: 'EDIT_WINDOW_ENDED',
@@ -196,30 +203,31 @@ const ErrAssetURLAlreadyExists = new APIError('Asset URL already exists, cannot 
 });
 
 module.exports = {
-  ExtendableError,
   APIError,
   ErrAlreadyExists,
-  ErrPasswordTooShort,
-  ErrSettingsNotInit,
+  ErrAssetCommentingClosed,
+  ErrAssetURLAlreadyExists,
+  ErrAuthentication,
+  ErrCommentTooShort,
+  ErrContainsProfanity,
+  ErrEditWindowHasEnded,
+  ErrEmailTaken,
+  ErrInstallLock,
+  ErrInvalidAssetURL,
+  ErrLoginAttemptMaximumExceeded,
+  ErrLoginTFCodeWrong,
   ErrMissingEmail,
   ErrMissingPassword,
   ErrMissingToken,
-  ErrEmailTaken,
-  ErrSpecialChars,
   ErrMissingUsername,
-  ErrContainsProfanity,
-  ErrUsernameTaken,
-  ErrAssetCommentingClosed,
-  ErrNotFound,
-  ErrInvalidAssetURL,
-  ErrAuthentication,
   ErrNotAuthorized,
+  ErrNotFound,
+  ErrPasswordTooShort,
   ErrPermissionUpdateUsername,
   ErrSameUsernameProvided,
   ErrSettingsInit,
-  ErrInstallLock,
-  ErrLoginAttemptMaximumExceeded,
-  ErrEditWindowHasEnded,
-  ErrCommentTooShort,
-  ErrAssetURLAlreadyExists
+  ErrSettingsNotInit,
+  ErrSpecialChars,
+  ErrUsernameTaken,
+  ExtendableError,
 };

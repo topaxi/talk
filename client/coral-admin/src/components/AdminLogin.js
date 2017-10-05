@@ -6,15 +6,18 @@ import {Button, TextField, Alert, Success} from 'coral-ui';
 import Recaptcha from 'react-recaptcha';
 
 class AdminLogin extends React.Component {
-
-  constructor (props) {
-    super(props);
-    this.state = {email: '', password: '', requestPassword: false};
+  state = {
+    email: '',
+    password: '',
+    requestPassword: false,
+    twoFactorCode: '',
   }
 
   handleSignIn = (e) => {
     e.preventDefault();
-    this.props.handleLogin(this.state.email, this.state.password);
+    this.props.handleLogin(this.state.email, this.state.password, {
+      twoFactorCode: this.state.twoFactorCode,
+    });
   }
 
   onRecaptchaLoad = () => {
@@ -23,7 +26,10 @@ class AdminLogin extends React.Component {
   }
 
   onRecaptchaVerify = (recaptchaResponse) => {
-    this.props.handleLogin(this.state.email, this.state.password, recaptchaResponse);
+    this.props.handleLogin(this.state.email, this.state.password, {
+      recaptchaResponse,
+      twoFactorCode: this.state.twoFactorCode,
+    });
   }
 
   handleRequestPassword = (e) => {
@@ -32,31 +38,53 @@ class AdminLogin extends React.Component {
   }
 
   render () {
-    const {errorMessage, loginMaxExceeded, recaptchaPublic} = this.props;
+    const {
+      errorMessage,
+      loginMaxExceeded,
+      recaptchaPublic,
+      twoFactorRequired,
+    } = this.props;
+
     const signInForm = (
       <form onSubmit={this.handleSignIn}>
         {errorMessage && <Alert>{errorMessage}</Alert>}
-        <TextField
-          label='Email Address'
-          value={this.state.email}
-          onChange={(e) => this.setState({email: e.target.value})} />
-        <TextField
-          label='Password'
-          value={this.state.password}
-          onChange={(e) => this.setState({password: e.target.value})}
-          type='password' />
+        {
+          !twoFactorRequired &&
+          <div>
+            <TextField
+              label='Email Address'
+              value={this.state.email}
+              onChange={(e) => this.setState({email: e.target.value})} />
+            <TextField
+              label='Password'
+              value={this.state.password}
+              onChange={(e) => this.setState({password: e.target.value})}
+              type='password' />
+          </div>
+        }
+        {
+          twoFactorRequired &&
+          <TextField
+            label='Two Factor Code'
+            value={this.state.twoFactorCode}
+            onChange={(e) => this.setState({twoFactorCode: e.target.value})}
+            type='text' />
+        }
         <div style={{height: 10}}></div>
         <Button
           type='submit'
           cStyle='black'
           full
           onClick={this.handleSignIn}>Sign In</Button>
-        <p className={styles.forgotPasswordCTA}>
-          Forgot your password? <a href="#" className={styles.forgotPasswordLink} onClick={(e) => {
-            e.preventDefault();
-            this.setState({requestPassword: true});
-          }}>Request a new one.</a>
-        </p>
+        {
+          !twoFactorRequired &&
+          <p className={styles.forgotPasswordCTA}>
+            Forgot your password? <a href="#" className={styles.forgotPasswordLink} onClick={(e) => {
+              e.preventDefault();
+              this.setState({requestPassword: true});
+            }}>Request a new one.</a>
+          </p>
+        }
         {
           loginMaxExceeded &&
           <Recaptcha
@@ -102,6 +130,7 @@ class AdminLogin extends React.Component {
 
 AdminLogin.propTypes = {
   loginMaxExceeded: PropTypes.bool.isRequired,
+  twoFactorRequired: PropTypes.bool.isRequired,
   handleLogin: PropTypes.func.isRequired,
   passwordRequestSuccess: PropTypes.string,
   loginError: PropTypes.string,

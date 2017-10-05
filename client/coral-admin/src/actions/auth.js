@@ -7,7 +7,7 @@ import jwtDecode from 'jwt-decode';
 // SIGN IN
 //==============================================================================
 
-export const handleLogin = (email, password, recaptchaResponse) => (dispatch, _, {rest, client, storage}) => {
+export const handleLogin = (email, password, {recaptchaResponse, twoFactorCode} = {}) => (dispatch, _, {rest, client, storage}) => {
   dispatch({type: actions.LOGIN_REQUEST});
 
   const params = {
@@ -15,13 +15,16 @@ export const handleLogin = (email, password, recaptchaResponse) => (dispatch, _,
     body: {
       email,
       password
-    }
+    },
+    headers: {}
   };
 
   if (recaptchaResponse) {
-    params.headers = {
-      'X-Recaptcha-Response': recaptchaResponse
-    };
+    params.headers['X-Recaptcha-Response'] = recaptchaResponse;
+  }
+
+  if (twoFactorCode) {
+    params.headers['X-Two-Factor-Code'] = twoFactorCode;
   }
 
   return rest('/auth/local', params)
@@ -50,10 +53,29 @@ export const handleLogin = (email, password, recaptchaResponse) => (dispatch, _,
           message: t('error.email_password')
         });
       }
+      else if (error.translation_key === 'TWO_FACTOR_WRONG') {
+        if (twoFactorCode && twoFactorCode.length > 0) {
+
+          // The two-factor code was provided, and it was wrong, notify
+          // with error, and display the two-factor pane again.
+          dispatch({
+            type: actions.LOGIN_TWOFACTOR_REQUIRED,
+            message: t('error.TWO_FACTOR_WRONG')
+          });
+        } else {
+
+          // The Two Factor Code wasn't asked for, so just display the
+          // two-factor pane.
+          dispatch({
+            type: actions.LOGIN_TWOFACTOR_REQUIRED,
+            message: null
+          });
+        }
+      }
       else if (error.translation_key === 'LOGIN_MAXIMUM_EXCEEDED') {
         dispatch({
           type: actions.LOGIN_MAXIMUM_EXCEEDED,
-          message: t(`error.${error.translation_key}`),
+          message: t('error.LOGIN_MAXIMUM_EXCEEDED'),
         });
       } else {
         dispatch({

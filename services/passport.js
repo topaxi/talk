@@ -11,6 +11,7 @@ const uuid = require('uuid');
 const debug = require('debug')('talk:services:passport');
 const bowser = require('bowser');
 const ms = require('ms');
+const speakeasy = require('speakeasy');
 
 // Create a redis client to use for authentication.
 const {createClientFactory} = require('./redis');
@@ -27,6 +28,7 @@ const {
   JWT_COOKIE_NAMES,
   JWT_CLEAR_COOKIE_LOGOUT,
   JWT_USER_ID_CLAIM,
+  TWO_FACTOR_ENABLED,
 } = require('../config');
 
 const {
@@ -355,7 +357,7 @@ const CheckRecaptcha = async (req) => {
 /**
  * This records a login attempt failure as well as optionally flags an account
  * for requiring a recaptcha in the future outside the temporary window.
- * @return {Promise} resolves with nothing if rate limit not exeeded, errors if
+ * @return {Promise} resolves with nothing if rate limit not exceeded, errors if
  *                   there is a rate limit error
  */
 const HandleFailedAttempt = async (email, userNeedsRecaptcha) => {
@@ -430,7 +432,7 @@ passport.use(new LocalStrategy({
         return done(null, false, {message: 'Incorrect recaptcha'});
       }
 
-      // Some other unexpected error occured.
+      // Some other unexpected error occurred.
       return done(err);
     }
   }
@@ -446,7 +448,7 @@ passport.use(new LocalStrategy({
   debug(`user=${user != null}`);
 
   // If the user doesn't exist, then mark this as a failed attempt at logging in
-  // this non-existant user and continue.
+  // this non-existent user and continue.
   if (!user) {
     try {
       await HandleFailedAttempt(email);
@@ -488,6 +490,35 @@ passport.use(new LocalStrategy({
     return done(null, false, {message: 'Incorrect email/password combination'});
   }
 
+  // If Two Factor is enabled.
+  if (TWO_FACTOR_ENABLED && user) {
+
+    // If the user has a two factor secret, then we should ensure that the
+    // request included two factor data.
+    const twoFactorSecret = get(user, 'metadata.twoFactorSecret');
+    if (twoFactorSecret) {
+
+      // The user has two-factor turned on.
+
+      // Get the token on the request.
+      const twoFactorCode = req.get('X-Two-Factor-Code') || '';
+
+      console.log(twoFactorCode, twoFactorSecret);
+
+      // Check that the token was what we expected.
+      const verified = speakeasy.totp.verify({
+        secret: twoFactorSecret,
+        encoding: 'base32',
+        token: twoFactorCode
+      });
+      if (!verified) {
+
+        // It wasn't. Let's error out now.
+        return done(errors.ErrLoginTFCodeWrong);
+      }
+    }
+  }
+
   // If the user needed a recaptcha, yet we have gotten this far, this indicates
   // that the password was correct, so let's unflag their account for logins. We
   // can only do this obviously when recaptcha is enabled. The account wouldn't
@@ -501,7 +532,7 @@ passport.use(new LocalStrategy({
   }
 
   // Define the loginProfile being used to perform an additional
-  // verificaiton.
+  // verification.
   let loginProfile = {id: email, provider: 'local'};
 
   // Perform final steps to login the user.
