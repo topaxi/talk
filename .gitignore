@@ -67,6 +67,7 @@ plugins/*
 !plugins/talk-plugin-upvote
 !plugins/talk-plugin-viewing-options
 !plugins/talk-plugin-rich-text
+!plugins/talk-plugin-change-email
 
 **/node_modules/*
 yarn-error.log

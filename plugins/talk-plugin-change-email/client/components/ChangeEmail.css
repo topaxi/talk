@@ -1,0 +1,28 @@
+.container {
+  padding: 8px;
+  box-sizing: border-box;
+  display: flex;
+  border: solid 1px transparent;
+  border-radius: 3px;
+
+  &.editing {
+    background: #EDEDED;
+    border-color: #979797;
+  }
+}
+
+.content {
+  flex-grow: 1;
+}
+
+.actions {
+  flex-grow: 0;
+}
+
+.button {
+  background: transparent;
+  border: solid 1px #787D80;
+  line-height: 20px;
+  height: 26px;
+  font-size: 1em;
+}
