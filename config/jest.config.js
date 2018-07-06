@@ -5,11 +5,8 @@ module.exports = {
   roots: ["<rootDir>/src", "<rootDir>/scripts"],
   collectCoverageFrom: ["src/**/*.{js,jsx,mjs,ts,tsx}"],
   coveragePathIgnorePatterns: ["/node_modules/"],
-  setupFiles: ["<rootDir>/config/polyfills.js"],
-  testMatch: [
-    "**/__tests__/**/*.{js,jsx,mjs,ts,tsx}",
-    "**/*.spec.{js,jsx,mjs,ts,tsx}",
-  ],
+  setupFiles: ["<rootDir>/config/polyfills.js", "<rootDir>/test/jestsetup.ts"],
+  testMatch: ["**/*.spec.{js,jsx,mjs,ts,tsx}"],
   testEnvironment: "node",
   testURL: "http://localhost",
   transform: {
@@ -40,4 +37,11 @@ module.exports = {
     "ts",
     "tsx",
   ],
+  snapshotSerializers: ["enzyme-to-json/serializer"],
+  globals: {
+    "ts-jest": {
+      useBabelrc: true,
+      tsConfigFile: path.resolve(__dirname, "tsconfig.jest.json"),
+    },
+  },
 };
